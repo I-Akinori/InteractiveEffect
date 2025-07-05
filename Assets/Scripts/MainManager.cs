@@ -23,10 +23,12 @@ namespace InteractiveEffector
 
         [SerializeField] private SceneTitle sceneTitle;
         [SerializeField] private List<SceneSetting> sceneSettings = new List<SceneSetting>();
+        [SerializeField] private List<AudioSource> sounds = new List<AudioSource>();
+
         private SceneSetting currentSetting = null;
         private bool sceneChanged = false;
         private float prevTime = 0f;
-
+        
         private void Start()
         {
             time = 0;
@@ -101,6 +103,16 @@ namespace InteractiveEffector
             if (Input.GetKeyDown(KeyCode.R))
             {
                 ForceResetTime();
+            }
+            
+            // インタラクティブサウンド
+            for (var i = 0; i < UserInterfaceManager.KeyInformations.Count; i++)
+            {
+                var info = UserInterfaceManager.KeyInformations[i];
+                if (info.Down)
+                {
+                    sounds[i].Play();
+                }
             }
         }
 

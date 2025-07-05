@@ -1,18 +1,22 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using MidiJack;
 
 namespace InteractiveEffector.UserInterface
 {
     public class KeyInformation
     {
-        public KeyInformation(KeyCode key)
+        public KeyInformation(KeyCode key, int note)
         {
             Key = key;
+            Note = note;
         }
         public KeyCode Key;
+        public int Note;
         public float Time = 0;
         public bool Down = false;
+        public bool PadTouched = true;
     }
     public static class UserInterfaceManager
     {
@@ -22,23 +26,23 @@ namespace InteractiveEffector.UserInterface
         private static float[] times = new float[16];
         private static List<KeyInformation> keyInformations = new List<KeyInformation>()
         {
-            new KeyInformation(KeyCode.Alpha1),
-            new KeyInformation(KeyCode.Alpha2),
-            new KeyInformation(KeyCode.Alpha3),
-            new KeyInformation(KeyCode.Alpha4),
-            new KeyInformation(KeyCode.Alpha5),
-            new KeyInformation(KeyCode.Alpha6),
-            new KeyInformation(KeyCode.Alpha7),
-            new KeyInformation(KeyCode.Alpha8),
-            new KeyInformation(KeyCode.Alpha9),
-            new KeyInformation(KeyCode.Alpha0),
+            new KeyInformation(KeyCode.Alpha1, 80),
+            new KeyInformation(KeyCode.Alpha2, 81),
+            new KeyInformation(KeyCode.Alpha3, 82),
+            new KeyInformation(KeyCode.Alpha4, 83),
+            new KeyInformation(KeyCode.Alpha5, 76),
+            new KeyInformation(KeyCode.Alpha6, 77),
+            new KeyInformation(KeyCode.Alpha7, 78),
+            new KeyInformation(KeyCode.Alpha8, 79),
+            new KeyInformation(KeyCode.Alpha9, 72),
+            new KeyInformation(KeyCode.Alpha0, 73),
             
-            new KeyInformation(KeyCode.Space),
-            new KeyInformation(KeyCode.Q),
-            new KeyInformation(KeyCode.W),
-            new KeyInformation(KeyCode.E),
-            new KeyInformation(KeyCode.R),
-            new KeyInformation(KeyCode.T),
+            new KeyInformation(KeyCode.Space, 74),
+            new KeyInformation(KeyCode.Q, 75),
+            new KeyInformation(KeyCode.W, 68),
+            new KeyInformation(KeyCode.E, 69),
+            new KeyInformation(KeyCode.R, 70),
+            new KeyInformation(KeyCode.T, 71),
         };
         
         public static void UpdateInput(float dt)
@@ -46,15 +50,26 @@ namespace InteractiveEffector.UserInterface
             times = new float [keyInformations.Count];
             for (var i = 0; i < keyInformations.Count; i++)
             {
-                keyInformations[i].Time -= dt;
-                keyInformations[i].Time = Mathf.Max(0, keyInformations[i].Time);
-                keyInformations[i].Down = false;
-                if (Input.GetKeyDown(keyInformations[i].Key))
+                var keyInfo = keyInformations[i];
+                keyInfo.Time -= dt;
+                keyInfo.Time = Mathf.Max(0, keyInfo.Time);
+                keyInfo.Down = false;
+                if (Input.GetKeyDown(keyInfo.Key) 
+                    || (MidiMaster.GetKey(keyInfo.Note) > 0 && !keyInfo.PadTouched))
                 {
-                    keyInformations[i].Time = duration;
-                    keyInformations[i].Down = true;
+                    if (!keyInfo.PadTouched)
+                    {
+                        keyInfo.PadTouched = true;
+                    }
+                    keyInfo.Time = duration;
+                    keyInfo.Down = true;
                 }
-                times[i] = keyInformations[i].Time;
+
+                if (MidiMaster.GetKey(keyInfo.Note) == 0)
+                {
+                    keyInfo.PadTouched = false;
+                }
+                times[i] = keyInfo.Time;
             }
         }
     }
